@@ -3,7 +3,7 @@ layout: page
 title: Home
 ---
 
-# Your Name
+# Daivi
 **IT • Project Management • Systems • Automation**
 
 Short intro (2–3 sentences):
