@@ -1,3 +1,10 @@
-theme: minima
 title: "Your Name — IT & Project Management"
 description: "IT projects, systems work, and delivery case studies"
+theme: minima
+
+# Optional but nice:
+show_downloads: false
+markdown: kramdown
+
+# Helps future-proof links
+permalink: pretty
