@@ -1,0 +1,56 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<Layout title="About">
+  <Navbar slot="header" />
+
+  <div class="max-w-3xl mx-auto py-12">
+    <h1 class="text-4xl font-bold text-gray-900 mb-8 pb-4 border-b border-gray-200">About Me</h1>
+
+    <div class="prose prose-lg text-gray-600">
+      <p class="lead text-xl text-gray-800 mb-6">
+        I am a versatile IT professional with a passion for building robust systems and managing technical projects to success.
+      </p>
+
+      <p class="mb-6">
+        With a background in both hands-on technical roles and project coordination, I thrive in environments where I can leverage my skills to solve complex problems. I have experience supporting diverse environments, from corporate offices to production labs, ensuring reliability and standardization.
+      </p>
+
+      <p class="mb-8">
+         My focus is always on delivery—reducing downtime, improving documentation, and ensuring systems are stable and scalable.
+      </p>
+
+      <h2 class="text-2xl font-bold text-gray-900 mt-12 mb-4">What I’m looking for</h2>
+      <p class="mb-8">
+        I am seeking roles that allow me to combine my technical expertise with my project management skills. I am particularly interested in opportunities in the [Your Target Industry] industry, open to both on-site and remote work. I enjoy work that challenges me to streamline operations and implement effective technical solutions.
+      </p>
+
+      <h2 class="text-2xl font-bold text-gray-900 mt-12 mb-4">Strengths</h2>
+      <ul class="space-y-4 list-none pl-0">
+        <li class="flex items-start">
+          <svg class="h-6 w-6 text-green-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          <span><strong>Clear Documentation:</strong> I believe that if it isn't documented, it doesn't exist. I create clear, usable runbooks and guides.</span>
+        </li>
+        <li class="flex items-start">
+          <svg class="h-6 w-6 text-green-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          <span><strong>Practical Troubleshooting:</strong> I approach problems systematically to find root causes and implement permanent fixes.</span>
+        </li>
+        <li class="flex items-start">
+          <svg class="h-6 w-6 text-green-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          <span><strong>Delivery Focus:</strong> I prioritize shipping improvements, reducing risk, and maintaining system stability above all else.</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <Footer slot="footer" />
+</Layout>
