@@ -1,0 +1,36 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import { projects } from '../data/projects';
+
+// Get unique categories
+const categories = [...new Set(projects.map(p => p.category))];
+---
+
+<Layout title="Projects">
+  <Navbar slot="header" />
+
+  <div class="py-12">
+    <h1 class="text-4xl font-bold text-gray-900 mb-8 pb-4 border-b border-gray-200">Projects</h1>
+
+    <div class="space-y-16">
+      {categories.map(category => (
+        <section>
+          <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+            <span class="bg-indigo-600 w-2 h-8 mr-3 rounded-sm"></span>
+            {category}
+          </h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {projects.filter(p => p.category === category).map(project => (
+              <ProjectCard project={project} />
+            ))}
+          </div>
+        </section>
+      ))}
+    </div>
+  </div>
+
+  <Footer slot="footer" />
+</Layout>
