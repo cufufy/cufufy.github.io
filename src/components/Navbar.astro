@@ -7,28 +7,132 @@ const navItems = [
 ];
 ---
 
-<nav class="bg-white shadow-sm sticky top-0 z-50">
+<nav class="bg-white dark:bg-gray-800 shadow-sm sticky top-0 z-50 transition-colors duration-300">
   <div class="container mx-auto px-4">
     <div class="flex justify-between items-center h-16">
       <div class="flex-shrink-0">
-        <a href="/" class="text-xl font-bold text-indigo-600">Daivi</a>
+        <a href="/" class="text-xl font-bold text-indigo-600 dark:text-indigo-400">Dale</a>
       </div>
-      <div class="hidden md:block">
-        <div class="ml-10 flex items-baseline space-x-4">
+
+      <div class="hidden md:flex items-center space-x-4">
+        <div class="flex items-baseline space-x-4">
           {navItems.map((item) => (
             <a
               href={item.href}
-              class="text-gray-600 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+              class="text-gray-600 hover:text-indigo-600 dark:text-gray-300 dark:hover:text-indigo-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
             >
               {item.name}
             </a>
           ))}
         </div>
+        <!-- Desktop Theme Toggle -->
+        <button id="theme-toggle-desktop" class="text-gray-500 hover:text-indigo-600 dark:text-gray-400 dark:hover:text-indigo-400 focus:outline-none p-2 rounded-md">
+            <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+            <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
+        </button>
       </div>
-      <!-- Mobile menu button placeholder (could be implemented later) -->
-      <div class="-mr-2 flex md:hidden">
-         <a href="/projects" class="text-gray-600 hover:text-indigo-600 px-3 py-2">Menu</a>
+
+      <div class="flex md:hidden items-center space-x-4">
+        <!-- Mobile Theme Toggle -->
+         <button id="theme-toggle-mobile" class="text-gray-500 hover:text-indigo-600 dark:text-gray-400 dark:hover:text-indigo-400 focus:outline-none p-2 rounded-md">
+            <svg id="theme-toggle-dark-icon-mobile" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+            <svg id="theme-toggle-light-icon-mobile" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
+        </button>
+
+        <!-- Mobile menu button -->
+        <button id="mobile-menu-btn" type="button" class="text-gray-600 hover:text-indigo-600 dark:text-gray-300 dark:hover:text-indigo-400 inline-flex items-center justify-center p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" aria-controls="mobile-menu" aria-expanded="false">
+          <span class="sr-only">Open main menu</span>
+          <!-- Icon when menu is closed. -->
+          <svg class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+          <!-- Icon when menu is open. -->
+          <svg class="hidden h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
       </div>
     </div>
   </div>
+
+  <!-- Mobile menu, show/hide based on menu state. -->
+  <div class="hidden md:hidden" id="mobile-menu">
+    <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white dark:bg-gray-800 shadow-lg transition-colors duration-300">
+      {navItems.map((item) => (
+        <a
+          href={item.href}
+          class="text-gray-600 hover:text-indigo-600 dark:text-gray-300 dark:hover:text-indigo-400 block px-3 py-2 rounded-md text-base font-medium"
+        >
+          {item.name}
+        </a>
+      ))}
+    </div>
+  </div>
 </nav>
+
+<script>
+  // Mobile Menu Logic
+  const btn = document.getElementById('mobile-menu-btn');
+  const menu = document.getElementById('mobile-menu');
+
+  if (btn && menu) {
+    btn.addEventListener('click', () => {
+      const expanded = btn.getAttribute('aria-expanded') === 'true';
+      btn.setAttribute('aria-expanded', String(!expanded));
+      menu.classList.toggle('hidden');
+
+      const svgOpen = btn.querySelector('svg:first-of-type');
+      const svgClose = btn.querySelector('svg:last-of-type');
+      if (svgOpen && svgClose) {
+         svgOpen.classList.toggle('hidden');
+         svgOpen.classList.toggle('block');
+         svgClose.classList.toggle('hidden');
+         svgClose.classList.toggle('block');
+      }
+    });
+  }
+
+  // Dark Mode Toggle Logic
+  const themeToggleDesktop = document.getElementById('theme-toggle-desktop');
+  const themeToggleMobile = document.getElementById('theme-toggle-mobile');
+
+  // Icons
+  const themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
+  const themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
+  const themeToggleDarkIconMobile = document.getElementById('theme-toggle-dark-icon-mobile');
+  const themeToggleLightIconMobile = document.getElementById('theme-toggle-light-icon-mobile');
+
+  function updateIcons() {
+      // If dark mode is active
+      if (document.documentElement.classList.contains('dark')) {
+          // Show sun (light icon) to switch to light, hide moon
+          themeToggleLightIcon?.classList.remove('hidden');
+          themeToggleDarkIcon?.classList.add('hidden');
+          themeToggleLightIconMobile?.classList.remove('hidden');
+          themeToggleDarkIconMobile?.classList.add('hidden');
+      } else {
+          // Show moon (dark icon) to switch to dark, hide sun
+          themeToggleLightIcon?.classList.add('hidden');
+          themeToggleDarkIcon?.classList.remove('hidden');
+          themeToggleLightIconMobile?.classList.add('hidden');
+          themeToggleDarkIconMobile?.classList.remove('hidden');
+      }
+  }
+
+  // Initial Icon State
+  updateIcons();
+
+  function toggleTheme() {
+      if (document.documentElement.classList.contains('dark')) {
+          document.documentElement.classList.remove('dark');
+          localStorage.setItem('theme', 'light');
+      } else {
+          document.documentElement.classList.add('dark');
+          localStorage.setItem('theme', 'dark');
+      }
+      updateIcons();
+  }
+
+  themeToggleDesktop?.addEventListener('click', toggleTheme);
+  themeToggleMobile?.addEventListener('click', toggleTheme);
+</script>
