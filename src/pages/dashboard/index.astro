@@ -1,0 +1,80 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { db } from '../../db';
+import { profiles } from '../../db/schema';
+import { desc } from 'drizzle-orm';
+
+// Auth check handled by middleware
+
+let profileList = [];
+try {
+    profileList = await db.select().from(profiles).orderBy(desc(profiles.createdAt));
+} catch (e) {
+    if (import.meta.env.DEV || !process.env.DB_HOST) {
+        // Mock data for demo
+        profileList = [
+            { id: 1, slug: 'demo', displayName: 'Demo Profile', status: 'published', createdAt: new Date() }
+        ];
+    }
+}
+---
+
+<Layout title="Dashboard">
+    <div class="flex flex-col gap-8 max-w-5xl mx-auto">
+        <div class="flex justify-between items-center">
+            <h1 class="text-3xl font-bold">Dashboard</h1>
+            <form action="/api/auth/logout" method="POST">
+                <button type="submit" class="px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors cursor-pointer">
+                    Logout
+                </button>
+            </form>
+        </div>
+
+        <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold">Your Link Profiles</h2>
+                <!-- Link to create page (to be implemented) or just use a mock create for now -->
+                <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-not-allowed opacity-50" title="Not implemented in MVP demo">
+                    + New Profile
+                </button>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b dark:border-gray-700 text-gray-500 text-sm uppercase tracking-wider">
+                            <th class="pb-3 pl-2 font-medium">Name</th>
+                            <th class="pb-3 font-medium">Slug</th>
+                            <th class="pb-3 font-medium">Status</th>
+                            <th class="pb-3 text-right pr-2 font-medium">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {profileList.map(profile => (
+                            <tr class="border-b last:border-0 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors">
+                                <td class="py-4 pl-2 font-medium text-gray-900 dark:text-gray-100">{profile.displayName || 'Untitled'}</td>
+                                <td class="py-4 text-gray-500 font-mono text-sm">/l/{profile.slug}</td>
+                                <td class="py-4">
+                                    <span class={`px-2 py-1 rounded-full text-xs font-medium ${profile.status === 'published' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'}`}>
+                                        {profile.status}
+                                    </span>
+                                </td>
+                                <td class="py-4 text-right pr-2 space-x-3">
+                                    <a href={`/l/${profile.slug}`} target="_blank" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium">View</a>
+                                    <a href={`/dashboard/edit/${profile.id}`} class="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 text-sm font-medium">Edit</a>
+                                </td>
+                            </tr>
+                        ))}
+                        {profileList.length === 0 && (
+                            <tr>
+                                <td colspan="4" class="py-12 text-center text-gray-500">
+                                    No profiles found. Create one to get started.
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</Layout>

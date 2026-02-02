@@ -1,0 +1,335 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import { db } from '../../../db';
+import { profiles, links } from '../../../db/schema';
+import { eq, asc } from 'drizzle-orm';
+
+const { id } = Astro.params;
+
+let profile;
+let profileLinks = [];
+
+try {
+    const pResults = await db.select().from(profiles).where(eq(profiles.id, Number(id))).limit(1);
+    profile = pResults[0];
+    if (profile) {
+        profileLinks = await db.select().from(links).where(eq(links.profileId, profile.id)).orderBy(asc(links.order));
+    }
+} catch (e) {
+    if (import.meta.env.DEV || !process.env.DB_HOST) {
+        profile = {
+            id: 1, slug: 'demo', displayName: 'Demo Profile', headline: 'Digital Creator',
+            bio: 'Welcome to my official links page.', status: 'published',
+            themeConfig: { background: 'bg-slate-900', textColor: 'text-white' }
+        };
+        profileLinks = [
+            { id: 1, title: 'My Portfolio', url: 'https://example.com', subtitle: 'View my work', isVisible: true },
+            { id: 2, title: 'Twitter', url: 'https://twitter.com', subtitle: '@handle', isVisible: true }
+        ];
+    }
+}
+
+if (!profile) return Astro.redirect('/dashboard');
+
+const theme = profile.themeConfig as any || {};
+---
+<Layout title={`Edit ${profile.displayName}`}>
+    <div class="max-w-6xl mx-auto">
+        <div class="flex items-center gap-4 mb-8">
+            <a href="/dashboard" class="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 transition-colors flex items-center gap-1">
+                &larr; Back to Dashboard
+            </a>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Editor Column -->
+            <div class="lg:col-span-2 space-y-6">
+
+                <div class="flex justify-between items-center">
+                    <h1 class="text-2xl font-bold">Edit Profile</h1>
+                    <div class="flex gap-2">
+                         <a href={`/l/${profile.slug}`} target="_blank" class="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                            Open Public Link
+                        </a>
+                        <button id="save-btn-top" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors shadow-sm cursor-pointer">
+                            Save Changes
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Profile Details -->
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                    <h2 class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">Profile Basics</h2>
+                    <form id="profile-form" class="space-y-4" onsubmit="return false;">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Display Name</label>
+                                <input type="text" id="input-displayName" value={profile.displayName} class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+                            </div>
+                             <div>
+                                <label class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Status</label>
+                                <select id="input-status" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                    <option value="published" selected={profile.status === 'published'}>Published</option>
+                                    <option value="draft" selected={profile.status === 'draft'}>Draft</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Slug URL</label>
+                            <div class="flex items-center">
+                                <span class="text-gray-500 bg-gray-100 dark:bg-gray-800 px-3 py-2 border border-r-0 border-gray-300 dark:border-gray-600 rounded-l-lg text-sm">example.com/l/</span>
+                                <input type="text" id="input-slug" value={profile.slug} class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-r-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+                            </div>
+                        </div>
+
+                         <div>
+                            <label class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Headline</label>
+                             <input type="text" id="input-headline" value={profile.headline || ''} class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+                        </div>
+
+                         <div>
+                            <label class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Bio</label>
+                            <textarea id="input-bio" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none" rows="3">{profile.bio}</textarea>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Theme Config -->
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                    <h2 class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">Theme Customization</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Background Class</label>
+                            <input type="text" id="input-theme-bg" value={theme.background || 'bg-slate-900'} class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="e.g. bg-slate-900" />
+                            <p class="text-xs text-gray-500 mt-1">Tailwind classes (e.g. bg-blue-500, bg-gradient-to-r...)</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Text Color Class</label>
+                            <input type="text" id="input-theme-text" value={theme.textColor || 'text-white'} class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="e.g. text-white" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Links Manager -->
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Links</h2>
+                         <button id="add-link-btn" class="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 font-medium cursor-pointer">
+                            + Add Link
+                        </button>
+                    </div>
+
+                    <div id="links-container" class="space-y-3">
+                        {profileLinks.map((link) => (
+                            <div class="group p-4 border border-gray-200 dark:border-gray-600 rounded-lg flex flex-col gap-3 bg-gray-50 dark:bg-gray-750 hover:bg-white dark:hover:bg-gray-700 hover:shadow-sm transition-all link-row">
+                                <div class="flex justify-between items-start">
+                                    <div class="flex-1 space-y-2">
+                                        <input type="text" placeholder="Title" class="link-title w-full p-2 text-sm border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white" value={link.title} />
+                                        <input type="text" placeholder="URL" class="link-url w-full p-2 text-sm border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white" value={link.url} />
+                                        <input type="text" placeholder="Subtitle (optional)" class="link-subtitle w-full p-2 text-xs border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white" value={link.subtitle || ''} />
+                                    </div>
+                                    <div class="flex flex-col items-end gap-2 ml-4">
+                                        <div class="flex gap-1 mb-2">
+                                            <button class="p-1 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 move-up-btn cursor-pointer" title="Move Up">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" /></svg>
+                                            </button>
+                                            <button class="p-1 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 move-down-btn cursor-pointer" title="Move Down">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                                            </button>
+                                        </div>
+                                         <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" class="link-visible sr-only peer" checked={link.isVisible} />
+                                            <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-green-600"></div>
+                                        </label>
+                                        <button class="text-red-500 hover:text-red-700 text-xs mt-2 delete-btn cursor-pointer">Remove</button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                     <div class="mt-6 flex justify-end">
+                        <button id="save-btn" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors shadow-sm cursor-pointer">
+                            Save Changes
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Share Section -->
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                    <h2 class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">Share Profile</h2>
+                    <div class="flex flex-col sm:flex-row items-center gap-6">
+                        <div class="bg-white p-2 rounded-lg border border-gray-200">
+                            <!-- QR Code generated via API for MVP -->
+                            <img src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=https://example.com/l/${profile.slug}`} alt="QR Code" class="w-32 h-32" />
+                        </div>
+                        <div class="space-y-3 flex-1 w-full">
+                            <div class="flex gap-2">
+                                <input type="text" value={`https://example.com/l/${profile.slug}`} readonly class="w-full text-sm p-2 border rounded bg-gray-50 dark:bg-gray-900 dark:border-gray-600 text-gray-500" />
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="navigator.clipboard.writeText(this.parentElement.previousElementSibling.firstElementChild.value); this.innerText = 'Copied!';" class="flex-1 px-4 py-2 text-sm font-medium bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg transition-colors text-gray-900 dark:text-white border border-transparent cursor-pointer">
+                                    Copy URL
+                                </button>
+                                <a href={`https://api.qrserver.com/v1/create-qr-code/?size=500x500&format=png&data=https://example.com/l/${profile.slug}`} download="qr-code.png" target="_blank" class="flex-1 px-4 py-2 text-sm font-medium bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg transition-colors text-center text-gray-900 dark:text-white border border-transparent">
+                                    Download QR
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preview Column (Desktop Only) -->
+            <div class="hidden lg:block">
+                <div class="sticky top-8">
+                     <h2 class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100 text-center">Live Preview</h2>
+                    <div class="border-[12px] border-gray-900 rounded-[3rem] h-[640px] w-[320px] mx-auto overflow-hidden bg-white shadow-2xl relative ring-1 ring-gray-900/5">
+                        <div class="absolute top-0 inset-x-0 h-6 bg-gray-900 w-40 mx-auto rounded-b-xl z-20"></div>
+                        <div class="w-full h-full bg-white dark:bg-gray-900">
+                            <iframe src={`/l/${profile.slug}`} class="w-full h-full border-0" title="Preview"></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</Layout>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const linksContainer = document.getElementById('links-container');
+        const addLinkBtn = document.getElementById('add-link-btn');
+        const saveBtn = document.getElementById('save-btn');
+        const saveBtnTop = document.getElementById('save-btn-top');
+
+        function setupRowEvents(row) {
+            row.querySelector('.delete-btn').addEventListener('click', () => row.remove());
+
+            row.querySelector('.move-up-btn').addEventListener('click', () => {
+                if (row.previousElementSibling) {
+                    row.parentNode.insertBefore(row, row.previousElementSibling);
+                }
+            });
+
+            row.querySelector('.move-down-btn').addEventListener('click', () => {
+                if (row.nextElementSibling) {
+                    row.parentNode.insertBefore(row.nextElementSibling, row);
+                }
+            });
+        }
+
+        function createLinkRow(link = { title: '', url: '', subtitle: '', isVisible: true }) {
+            const div = document.createElement('div');
+            div.className = "group p-4 border border-gray-200 dark:border-gray-600 rounded-lg flex flex-col gap-3 bg-gray-50 dark:bg-gray-750 hover:bg-white dark:hover:bg-gray-700 hover:shadow-sm transition-all link-row";
+            div.innerHTML = `
+                <div class="flex justify-between items-start">
+                    <div class="flex-1 space-y-2">
+                        <input type="text" placeholder="Title" class="link-title w-full p-2 text-sm border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white" value="\${link.title}">
+                        <input type="text" placeholder="URL" class="link-url w-full p-2 text-sm border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white" value="\${link.url}">
+                        <input type="text" placeholder="Subtitle (optional)" class="link-subtitle w-full p-2 text-xs border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white" value="\${link.subtitle || ''}">
+                    </div>
+                    <div class="flex flex-col items-end gap-2 ml-4">
+                        <div class="flex gap-1 mb-2">
+                            <button class="p-1 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 move-up-btn cursor-pointer" type="button" title="Move Up">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" /></svg>
+                            </button>
+                            <button class="p-1 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 move-down-btn cursor-pointer" type="button" title="Move Down">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                            </button>
+                        </div>
+                         <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" class="link-visible sr-only peer" \${link.isVisible ? 'checked' : ''}>
+                            <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-green-600"></div>
+                        </label>
+                        <button class="text-red-500 hover:text-red-700 text-xs mt-2 delete-btn cursor-pointer" type="button">Remove</button>
+                    </div>
+                </div>
+            `;
+
+            setupRowEvents(div);
+            return div;
+        }
+
+        if (addLinkBtn) {
+            addLinkBtn.addEventListener('click', () => {
+                linksContainer.appendChild(createLinkRow());
+            });
+        }
+
+        // Setup initial rows
+        document.querySelectorAll('.link-row').forEach(row => {
+            setupRowEvents(row);
+        });
+
+        async function save() {
+            const originalText = saveBtn.innerText;
+            saveBtn.innerText = 'Saving...';
+            saveBtn.disabled = true;
+            if(saveBtnTop) {
+                saveBtnTop.innerText = 'Saving...';
+                saveBtnTop.disabled = true;
+            }
+
+            const profileData = {
+                displayName: (document.getElementById('input-displayName')).value,
+                status: (document.getElementById('input-status')).value,
+                slug: (document.getElementById('input-slug')).value,
+                headline: (document.getElementById('input-headline')).value,
+                bio: (document.getElementById('input-bio')).value,
+                themeConfig: {
+                    background: (document.getElementById('input-theme-bg')).value,
+                    textColor: (document.getElementById('input-theme-text')).value
+                },
+                links: []
+            };
+
+            document.querySelectorAll('.link-row').forEach(row => {
+                profileData.links.push({
+                    title: (row.querySelector('.link-title')).value,
+                    url: (row.querySelector('.link-url')).value,
+                    subtitle: (row.querySelector('.link-subtitle')).value,
+                    isVisible: (row.querySelector('.link-visible')).checked
+                });
+            });
+
+            const id = window.location.pathname.split('/').pop();
+
+            try {
+                const res = await fetch(`/api/profiles/\${id}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(profileData)
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    alert('Saved successfully!');
+                    if (data.message && data.message.includes('Demo')) {
+                        console.log(data.message);
+                    } else {
+                        // Reload iframe
+                        const iframe = document.querySelector('iframe');
+                        if (iframe) iframe.src = iframe.src;
+                    }
+                } else {
+                    alert('Error saving: ' + (data.error || 'Unknown error'));
+                }
+            } catch (e) {
+                alert('Error saving: ' + e);
+            } finally {
+                saveBtn.innerText = originalText;
+                saveBtn.disabled = false;
+                 if(saveBtnTop) {
+                    saveBtnTop.innerText = 'Save Changes';
+                    saveBtnTop.disabled = false;
+                }
+            }
+        }
+
+        if (saveBtn) saveBtn.addEventListener('click', save);
+        if (saveBtnTop) saveBtnTop.addEventListener('click', save);
+    });
+</script>

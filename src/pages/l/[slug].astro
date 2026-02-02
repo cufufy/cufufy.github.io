@@ -1,0 +1,110 @@
+---
+import { db } from '../../db';
+import { profiles, links } from '../../db/schema';
+import { eq, asc } from 'drizzle-orm';
+
+const { slug } = Astro.params;
+
+if (!slug) {
+  return Astro.redirect('/404');
+}
+
+// Fetch profile
+let profileData;
+let linkData = [];
+
+try {
+    const profileResult = await db.select().from(profiles).where(eq(profiles.slug, slug)).limit(1);
+    profileData = profileResult[0];
+
+    if (profileData) {
+        linkData = await db.select().from(links)
+            .where(eq(links.profileId, profileData.id))
+            .where(eq(links.isVisible, true))
+            .orderBy(asc(links.order));
+    }
+} catch (e) {
+    console.error("Database error:", e);
+    // In dev/build without DB, we might want to show a dummy profile or error
+    // For demo purposes in this sandbox, we fallback to a demo profile if DB fails
+    if (import.meta.env.DEV || !process.env.DB_HOST) {
+        profileData = {
+            id: 0,
+            displayName: "Demo Profile",
+            headline: "Database connection failed or not configured",
+            bio: "This is a fallback preview. Please configure your database.",
+            themeConfig: { background: "bg-slate-900", textColor: "text-white" },
+            avatarUrl: null
+        };
+        linkData = [
+            { title: "Example Link 1", url: "#", subtitle: "Links will appear here" },
+            { title: "Example Link 2", url: "#", subtitle: "Once DB is connected" }
+        ];
+    }
+}
+
+if (!profileData) {
+  return Astro.redirect('/404');
+}
+
+// Parse theme config
+const theme = profileData.themeConfig as any || {};
+const bgClass = theme.background || 'bg-slate-900';
+const textClass = theme.textColor || 'text-white';
+
+---
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{profileData.displayName} | Links</title>
+</head>
+<body class={`min-h-screen flex flex-col items-center py-12 px-4 ${bgClass} ${textClass} transition-colors duration-300`}>
+
+    <main class="w-full max-w-md flex flex-col items-center gap-6 animate-fade-in">
+        <!-- Avatar -->
+        {profileData.avatarUrl ? (
+            <img src={profileData.avatarUrl} alt={profileData.displayName} class="w-24 h-24 rounded-full object-cover border-4 border-white/20 shadow-lg" />
+        ) : (
+            <div class="w-24 h-24 rounded-full bg-white/20 flex items-center justify-center text-3xl font-bold backdrop-blur-sm">
+                {profileData.displayName?.charAt(0)}
+            </div>
+        )}
+
+        <!-- Header -->
+        <div class="text-center space-y-2">
+            <h1 class="text-2xl font-bold">{profileData.displayName}</h1>
+            {profileData.headline && <p class="opacity-90 font-medium">{profileData.headline}</p>}
+            {profileData.bio && <p class="text-sm opacity-75 max-w-xs mx-auto leading-relaxed">{profileData.bio}</p>}
+        </div>
+
+        <!-- Links -->
+        <div class="w-full flex flex-col gap-4 mt-4">
+            {linkData.map((link) => (
+                <a href={link.url} target="_blank" rel="noopener noreferrer"
+                   class="block w-full p-4 rounded-xl bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/10 transition-all transform hover:scale-[1.02] active:scale-95 shadow-sm text-center group">
+                    <div class="font-semibold">{link.title}</div>
+                    {link.subtitle && <div class="text-xs opacity-75 mt-1">{link.subtitle}</div>}
+                </a>
+            ))}
+        </div>
+
+        <!-- Footer / Branding -->
+        <footer class="mt-12 text-xs opacity-50">
+            Powered by Astro LinkBio
+        </footer>
+    </main>
+
+    <style>
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+
+</body>
+</html>
