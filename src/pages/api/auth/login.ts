@@ -1,8 +1,9 @@
 import type { APIRoute } from 'astro';
 import { db } from '../../../db';
-import { users } from '../../../db/schema';
+import { users, sessions } from '../../../db/schema';
 import { eq } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
+import crypto from 'node:crypto';
 
 export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   const formData = await request.formData();
@@ -23,11 +24,22 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
               // Verify password hash
               const match = await bcrypt.compare(password, user.passwordHash);
               if (match) {
-                  cookies.set('session', 'admin-token', {
+                  // Generate random session ID
+                  const sessionId = crypto.randomUUID();
+                  const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7); // 1 week
+
+                  // Store session in DB
+                  await db.insert(sessions).values({
+                      id: sessionId,
+                      userId: user.id,
+                      expiresAt: expiresAt
+                  });
+
+                  cookies.set('session', sessionId, {
                     path: '/',
                     httpOnly: true,
                     secure: import.meta.env.PROD,
-                    maxAge: 60 * 60 * 24 * 7 // 1 week
+                    expires: expiresAt
                   });
                   return redirect('/dashboard');
               }

@@ -35,7 +35,58 @@ A self-hosted Link-in-Bio platform built with Astro, TailwindCSS, and MariaDB. D
 └── astro.config.mjs  # Astro configuration
 ```
 
-## 🧞 Development
+## 📖 User Guide
+
+### Accessing the Dashboard
+
+1.  Navigate to `/login`.
+2.  Enter your admin credentials.
+
+### Development Mode (Fallback Login)
+
+If you are running the project locally (`npm run dev`) and **do not** have a database configured (no `.env` file or `DB_HOST` unset), the system enables a **Demo Mode**.
+
+*   **URL**: `http://localhost:4321/login`
+*   **Email**: `admin@example.com`
+*   **Password**: `password`
+
+*Note: This mode is strictly disabled in production environments for security.*
+
+### Managing Profiles
+
+Once logged in to the dashboard:
+
+1.  **View Profiles**: You will see a list of all your link profiles.
+2.  **Edit Profile**: Click "Edit" on a profile card/row.
+3.  **Update Details**:
+    *   **Slug**: Change the URL of your public profile (e.g., `example.com/l/myslug`).
+    *   **Display Name & Bio**: Update your personal information.
+    *   **Theme**: Enter Tailwind CSS classes for background (e.g., `bg-slate-900`, `bg-gradient-to-r from-blue-500 to-purple-600`) and text color.
+4.  **Manage Links**:
+    *   **Add Link**: Click "+ Add Link" to create a new entry.
+    *   **Reorder**: Use the Up/Down arrows to change the order of links.
+    *   **Toggle**: Use the toggle switch to hide/show links without deleting them.
+    *   **Remove**: Click "Remove" to delete a link.
+5.  **Save**: Click "Save Changes" at the top or bottom of the editor.
+
+### Creating an Admin User (Production)
+
+To create a real admin user in your MariaDB database:
+
+1.  **Generate a Password Hash**:
+    Run the included utility script locally:
+    ```bash
+    node scripts/hash-password.js your_secure_password
+    ```
+    *Output example:* `$2a$10$X7...`
+
+2.  **Insert User into Database**:
+    Access your database (via CLI or phpMyAdmin) and run:
+    ```sql
+    INSERT INTO users (email, password_hash) VALUES ('your@email.com', '$2a$10$X7...');
+    ```
+
+## 🧞 Development Setup
 
 1.  **Install Dependencies**:
     ```bash
@@ -43,7 +94,7 @@ A self-hosted Link-in-Bio platform built with Astro, TailwindCSS, and MariaDB. D
     ```
 
 2.  **Configure Environment**:
-    Create a `.env` file in the root directory (optional for dev if using fallback/mock mode, required for DB connection):
+    Create a `.env` file in the root directory:
     ```env
     DB_HOST=localhost
     DB_USER=root
@@ -53,13 +104,8 @@ A self-hosted Link-in-Bio platform built with Astro, TailwindCSS, and MariaDB. D
     ```
 
 3.  **Setup Database**:
-    Ensure you have MariaDB running and create the database `link_bio`.
-    (Schema is defined in `src/db/schema.ts`. Use Drizzle Kit to push schema changes if you have a local DB).
-
-    To generate a password hash for your admin user:
-    ```bash
-    node scripts/hash-password.js your_secure_password
-    ```
+    Ensure MariaDB is running and create the `link_bio` database.
+    (Schema is defined in `src/db/schema.ts`).
 
 4.  **Run Development Server**:
     ```bash
@@ -105,8 +151,14 @@ CREATE DATABASE link_bio;
 CREATE USER 'link_user'@'localhost' IDENTIFIED BY 'your_secure_password';
 GRANT ALL PRIVILEGES ON link_bio.* TO 'link_user'@'localhost';
 FLUSH PRIVILEGES;
+
+-- Create the admin user (replace hash with one generated from scripts/hash-password.js)
+USE link_bio;
+-- Note: You must run the schema migration or create tables first (see below) before inserting!
 EXIT;
 ```
+
+*Tip: Use `drizzle-kit push` from your local machine (connected to remote DB via SSH tunnel) or manually create tables based on `src/db/schema.ts`.*
 
 ### 3. Application Deployment
 

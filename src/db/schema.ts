@@ -8,6 +8,12 @@ export const users = mysqlTable('users', {
   createdAt: timestamp('created_at').defaultNow(),
 });
 
+export const sessions = mysqlTable('sessions', {
+  id: varchar('id', { length: 255 }).primaryKey(),
+  userId: int('user_id').notNull(),
+  expiresAt: timestamp('expires_at').notNull()
+});
+
 export const profiles = mysqlTable('profiles', {
   id: serial('id').primaryKey(),
   slug: varchar('slug', { length: 255 }).notNull().unique(),

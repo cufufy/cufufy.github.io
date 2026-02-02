@@ -1,6 +1,10 @@
 import { drizzle } from 'drizzle-orm/mysql2';
 import mysql from 'mysql2/promise';
 import * as schema from './schema';
+import * as dotenv from 'dotenv';
+
+// Ensure .env is loaded if running in a context where Astro doesn't load it automatically (e.g. scripts)
+dotenv.config();
 
 // Database connection configuration
 // These should be set in your Hostinger VPS environment variables or .env file
